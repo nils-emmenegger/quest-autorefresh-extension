@@ -156,7 +156,7 @@ function checkShoppingCart(doc: Document): ClassGroupData[] {
   return parseShoppingCartRows(rawRows);
 }
 
-let running = false;
+let shouldKeepRunning = false;
 async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupData[]> {
   const main = getMain();
   let doc = await getIFrameDocument(main);
@@ -171,7 +171,7 @@ async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupDa
       return availableClasses;
     }
     await sleep(delay_secs);
-    if (!running) {
+    if (!shouldKeepRunning) {
       throw new Error("Stopped by user");
     }
     doc = await clickShoppingCart(main, doc);
@@ -204,6 +204,7 @@ async function main() {
   }
 }
 
+let running = false;
 chrome.runtime.onMessage.addListener(async (msg, _sender, sendResponse) => {
   if (msg.from === "popup") {
     if (msg.action === "Start") {
@@ -211,10 +212,12 @@ chrome.runtime.onMessage.addListener(async (msg, _sender, sendResponse) => {
         return;
       }
       running = true;
+      shouldKeepRunning = true;
       await main();
       running = false;
+      shouldKeepRunning = false;
     } else if (msg.action === "Stop") {
-      running = false;
+      shouldKeepRunning = false;
     } else if (msg.action === "IsRunning") {
       sendResponse({ running });
     }
