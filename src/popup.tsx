@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 const Popup = () => {
   const [buttonText, setButtonText] = useState<"Start" | "Stop">("Start");
   const [inputText, setInputText] = useState<string>("");
+  const [available, setAvailable] = useState<boolean>(true);
 
   const handleClick = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -43,14 +44,19 @@ const Popup = () => {
         }
         setButtonText(response.running ? "Stop" : "Start");
       } catch (e) {
+        setAvailable(false);
       }
     })()
   }, [])
 
   return (
     <>
-      <button onClick={handleClick}>{buttonText}</button>
-      <input type="text" placeholder="Delay" value={inputText} onChange={(e) => setInputText(e.target.value)} />
+      {available ? <>
+        <button onClick={handleClick}>{buttonText}</button>
+        <input type="text" placeholder="Delay" value={inputText} onChange={(e) => setInputText(e.target.value)} />
+      </>
+        : <span>Switch tabs</span>
+      }
     </>
   );
 };
