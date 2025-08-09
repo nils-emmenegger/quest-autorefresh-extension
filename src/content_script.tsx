@@ -206,9 +206,9 @@ function sendErrorNotification(error: any): void {
   });
 }
 
-async function main() {
+async function main(delay_secs: number) {
   try {
-    const availableClasses = await loopUntilClassAvailable(60);
+    const availableClasses = await loopUntilClassAvailable(delay_secs);
     sendAvailableClassesNotification(availableClasses);
   } catch (error) {
     sendErrorNotification(error);
@@ -219,12 +219,17 @@ let running = false;
 chrome.runtime.onMessage.addListener(async (msg, _sender, sendResponse) => {
   if (msg.from === "popup") {
     if (msg.action === "Start") {
+      const delay_secs = msg.delay_secs;
+      if (typeof delay_secs !== "number") {
+        throw new Error("Invalid delay_secs: " + delay_secs);
+      }
+
       if (running) {
         return;
       }
       running = true;
       shouldKeepRunning = true;
-      await main();
+      await main(delay_secs);
       running = false;
       shouldKeepRunning = false;
     } else if (msg.action === "Stop") {
