@@ -179,11 +179,20 @@ async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupDa
 }
 
 function sendAvailableClassesNotification(availableClasses: ClassGroupData[]): void {
-  chrome.runtime.sendMessage({ from: "content_script", type: "available_classes", availableClasses });
+  chrome.runtime.sendMessage({
+    from: "content_script",
+    type: "available_classes",
+    availableClasses
+  });
 }
 
 function sendErrorNotification(error: any): void {
-  chrome.runtime.sendMessage({ from: "content_script", type: "error", errorName: error?.name, errorMessage: error?.message });
+  chrome.runtime.sendMessage({
+    from: "content_script",
+    type: "error",
+    errorName: error?.name,
+    errorMessage: error?.message
+  });
 }
 
 async function main() {
