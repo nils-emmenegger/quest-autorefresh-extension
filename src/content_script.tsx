@@ -162,6 +162,7 @@ function checkShoppingCart(doc: Document): ClassGroupData[] {
 }
 
 let shouldKeepRunning = false;
+let refreshCount = 0;
 async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupData[]> {
   const main = getMain();
   let doc = await getIFrameDocument(main);
@@ -176,6 +177,7 @@ async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupDa
     if (availableClasses.length > 0) {
       return availableClasses;
     }
+    refreshCount += 1;
 
     const startDelay = new Date();
     while (new Date().getTime() - startDelay.getTime() < delay_secs * 1000) {
@@ -229,13 +231,17 @@ chrome.runtime.onMessage.addListener(async (msg, _sender, sendResponse) => {
       }
       running = true;
       shouldKeepRunning = true;
+      refreshCount = 0;
       await main(delay_secs);
       running = false;
       shouldKeepRunning = false;
+      refreshCount = 0;
     } else if (msg.action === "Stop") {
       shouldKeepRunning = false;
-    } else if (msg.action === "IsRunning") {
+    } else if (msg.action === "GetRunning") {
       sendResponse({ running });
+    } else if (msg.action === "GetRefreshCount") {
+      sendResponse({ refreshCount });
     }
   }
 });

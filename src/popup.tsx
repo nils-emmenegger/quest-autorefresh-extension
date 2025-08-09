@@ -5,6 +5,7 @@ const Popup = () => {
   const [buttonText, setButtonText] = useState<"Start" | "Stop">("Start");
   const [inputText, setInputText] = useState<string>("");
   const [available, setAvailable] = useState<boolean>(true);
+  const [refreshCount, setRefreshCount] = useState<number>(0);
 
   const handleClick = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -38,11 +39,16 @@ const Popup = () => {
       }
 
       try {
-        const response: any = await chrome.tabs.sendMessage(tabId, { from: "popup", action: "IsRunning" });
-        if (response?.running === undefined) {
-          return;
+        const runningResponse: any = await chrome.tabs.sendMessage(tabId, { from: "popup", action: "GetRunning" });
+        const refreshResponse: any = await chrome.tabs.sendMessage(tabId, { from: "popup", action: "GetRefreshCount" });
+
+        if (runningResponse?.running !== undefined) {
+          setButtonText(runningResponse.running ? "Stop" : "Start");
         }
-        setButtonText(response.running ? "Stop" : "Start");
+
+        if (refreshResponse?.refreshCount !== undefined) {
+          setRefreshCount(refreshResponse.refreshCount);
+        }
       } catch (e) {
         setAvailable(false);
       }
@@ -54,6 +60,7 @@ const Popup = () => {
       {available ? <>
         <button onClick={handleClick}>{buttonText}</button>
         <input type="text" placeholder="Delay" value={inputText} onChange={(e) => setInputText(e.target.value)} />
+        <div>Refresh Count: {refreshCount}</div>
       </>
         : <span>Switch tabs</span>
       }
