@@ -72,6 +72,11 @@ async function clickShoppingCart(main: HTMLElement, doc: Document): Promise<Docu
 }
 
 async function proceedToShoppingCart(main: HTMLElement, doc: Document): Promise<Document> {
+  const title = doc.getElementById("DERIVED_REGFRM1_TITLE1")?.textContent;
+  if (title !== "Select Term") {
+    throw new Error("Expected to be on Select Term page");
+  }
+
   const radioButtons = doc.querySelectorAll("input.PSRADIOBUTTON");
   if (radioButtons.length === 0) {
     throw new Error("Could not find radio buttons");
