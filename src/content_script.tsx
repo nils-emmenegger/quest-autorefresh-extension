@@ -170,15 +170,21 @@ async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupDa
 
   while (true) {
     doc = await proceedToShoppingCart(main, doc);
+
     const classGroupData = checkShoppingCart(doc);
     const availableClasses = classGroupData.filter(classGroup => classGroup.lec.status === "Open");
     if (availableClasses.length > 0) {
       return availableClasses;
     }
-    await sleep(delay_secs);
-    if (!shouldKeepRunning) {
-      throw new Error("Stopped by user");
+
+    const startDelay = new Date();
+    while (new Date().getTime() - startDelay.getTime() < delay_secs * 1000) {
+      await sleep(1);
+      if (!shouldKeepRunning) {
+        throw new Error("Stopped by user");
+      }
     }
+
     doc = await clickShoppingCart(main, doc);
   }
 }
