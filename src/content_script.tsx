@@ -13,21 +13,21 @@ function getMain(): HTMLElement {
 }
 
 async function getIFrameDocument(main: HTMLElement): Promise<Document> {
-  const iframe = await new Promise<HTMLElement | null>((resolve) => {
-    const iframe = document.getElementById("main_target_win0");
-
-    if (iframe) {
-      resolve(iframe);
-      return;
-    }
-
-    const observer = new MutationObserver((_mutations, observer) => {
+  const iframe = await new Promise<HTMLElement | null>(async resolve => {
+    while (true) {
       const iframe = document.getElementById("main_target_win0");
-      resolve(iframe);
-      observer.disconnect();
-    });
+      const doc = (iframe as HTMLIFrameElement)?.contentDocument;
+      const spinner = doc?.getElementById("WAIT_win0");
 
-    observer.observe(main, { attributes: true, childList: true, subtree: true });
+      if (iframe &&
+        !spinner?.checkVisibility() &&
+        !doc?.body.textContent?.includes("Processing Please wait")) {
+        resolve(iframe);
+        return;
+      }
+
+      await sleep(1);
+    }
   });
 
   if (!(iframe instanceof HTMLIFrameElement)) {
