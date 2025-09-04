@@ -71,9 +71,13 @@ async function clickShoppingCart(main: HTMLElement, doc: Document): Promise<Docu
   return await getIFrameDocument(main);
 }
 
-async function proceedToShoppingCart(main: HTMLElement, doc: Document): Promise<Document> {
+function isOnSelectTerm(doc: Document): boolean {
   const title = doc.getElementById("DERIVED_REGFRM1_TITLE1")?.textContent;
-  if (title !== "Select Term") {
+  return title === "Select Term";
+}
+
+async function selectLatestTerm(main: HTMLElement, doc: Document): Promise<Document> {
+  if (!isOnSelectTerm(doc)) {
     throw new Error("Expected to be on Select Term page");
   }
 
@@ -170,7 +174,9 @@ async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupDa
   doc = await clickShoppingCart(main, doc);
 
   while (true) {
-    doc = await proceedToShoppingCart(main, doc);
+    if (isOnSelectTerm(doc)) {
+      doc = await selectLatestTerm(main, doc);
+    }
 
     const classGroupData = checkShoppingCart(doc);
     const availableClasses = classGroupData.filter(classGroup => classGroup.lec.status === "Open");
