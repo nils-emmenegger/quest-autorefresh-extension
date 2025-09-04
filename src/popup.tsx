@@ -8,7 +8,10 @@ const Popup = () => {
   const [refreshCount, setRefreshCount] = useState<number>(0);
 
   const handleClick = async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
     const tabId = tab?.id;
     if (!tabId) {
       return;
@@ -17,7 +20,7 @@ const Popup = () => {
     try {
       const msg: any = {
         from: "popup",
-        action: buttonText
+        action: buttonText,
       };
       if (buttonText === "Start") {
         msg.delay_secs = parseInt(inputText) || 60;
@@ -26,21 +29,29 @@ const Popup = () => {
 
       await chrome.tabs.sendMessage(tabId, msg);
       setButtonText(buttonText === "Start" ? "Stop" : "Start");
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   useEffect(() => {
     (async () => {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
       const tabId = tab?.id;
       if (!tabId) {
         return;
       }
 
       try {
-        const runningResponse: any = await chrome.tabs.sendMessage(tabId, { from: "popup", action: "GetRunning" });
-        const refreshResponse: any = await chrome.tabs.sendMessage(tabId, { from: "popup", action: "GetRefreshCount" });
+        const runningResponse: any = await chrome.tabs.sendMessage(tabId, {
+          from: "popup",
+          action: "GetRunning",
+        });
+        const refreshResponse: any = await chrome.tabs.sendMessage(tabId, {
+          from: "popup",
+          action: "GetRefreshCount",
+        });
 
         if (runningResponse?.running !== undefined) {
           setButtonText(runningResponse.running ? "Stop" : "Start");
@@ -52,18 +63,25 @@ const Popup = () => {
       } catch (e) {
         setAvailable(false);
       }
-    })()
-  }, [])
+    })();
+  }, []);
 
   return (
     <>
-      {available ? <>
-        <button onClick={handleClick}>{buttonText}</button>
-        <input type="text" placeholder="Delay" value={inputText} onChange={(e) => setInputText(e.target.value)} />
-        <div>Refresh Count: {refreshCount}</div>
-      </>
-        : <span>Switch tabs</span>
-      }
+      {available ? (
+        <>
+          <button onClick={handleClick}>{buttonText}</button>
+          <input
+            type="text"
+            placeholder="Delay"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+          />
+          <div>Refresh Count: {refreshCount}</div>
+        </>
+      ) : (
+        <span>Switch tabs</span>
+      )}
     </>
   );
 };

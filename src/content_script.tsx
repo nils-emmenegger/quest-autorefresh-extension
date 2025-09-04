@@ -13,15 +13,17 @@ function getMain(): HTMLElement {
 }
 
 async function getIFrameDocument(main: HTMLElement): Promise<Document> {
-  const iframe = await new Promise<HTMLElement | null>(async resolve => {
+  const iframe = await new Promise<HTMLElement | null>(async (resolve) => {
     while (true) {
       const iframe = document.getElementById("main_target_win0");
       const doc = (iframe as HTMLIFrameElement)?.contentDocument;
       const spinner = doc?.getElementById("WAIT_win0");
 
-      if (iframe &&
+      if (
+        iframe &&
         !spinner?.checkVisibility() &&
-        !doc?.body.textContent?.includes("Processing Please wait")) {
+        !doc?.body.textContent?.includes("Processing Please wait")
+      ) {
         resolve(iframe);
         return;
       }
@@ -57,11 +59,18 @@ async function getIFrameDocument(main: HTMLElement): Promise<Document> {
   return doc;
 }
 
-async function clickShoppingCart(main: HTMLElement, doc: Document): Promise<Document> {
-  const shoppingCartFilter = Array.from(doc.getElementsByTagName("a")).filter((a) => a.textContent === "Shopping Cart");
+async function clickShoppingCart(
+  main: HTMLElement,
+  doc: Document
+): Promise<Document> {
+  const shoppingCartFilter = Array.from(doc.getElementsByTagName("a")).filter(
+    (a) => a.textContent === "Shopping Cart"
+  );
 
   if (shoppingCartFilter.length !== 1) {
-    throw new Error("Expected 1 Shopping Cart, found " + shoppingCartFilter.length);
+    throw new Error(
+      "Expected 1 Shopping Cart, found " + shoppingCartFilter.length
+    );
   }
 
   const shoppingCart = shoppingCartFilter[0];
@@ -76,7 +85,10 @@ function isOnSelectTerm(doc: Document): boolean {
   return title === "Select Term";
 }
 
-async function selectLatestTerm(main: HTMLElement, doc: Document): Promise<Document> {
+async function selectLatestTerm(
+  main: HTMLElement,
+  doc: Document
+): Promise<Document> {
   if (!isOnSelectTerm(doc)) {
     throw new Error("Expected to be on Select Term page");
   }
@@ -85,10 +97,14 @@ async function selectLatestTerm(main: HTMLElement, doc: Document): Promise<Docum
   if (radioButtons.length === 0) {
     throw new Error("Could not find radio buttons");
   }
-  const lastRadioButton = radioButtons[radioButtons.length - 1] as HTMLInputElement;
+  const lastRadioButton = radioButtons[
+    radioButtons.length - 1
+  ] as HTMLInputElement;
   lastRadioButton.click();
 
-  const continueButton = doc.getElementById("DERIVED_SSS_SCT_SSR_PB_GO") as HTMLInputElement | null;
+  const continueButton = doc.getElementById(
+    "DERIVED_SSS_SCT_SSR_PB_GO"
+  ) as HTMLInputElement | null;
   if (!continueButton) {
     throw new Error("Could not find continue button");
   }
@@ -101,14 +117,16 @@ async function selectLatestTerm(main: HTMLElement, doc: Document): Promise<Docum
 type ClassData = {
   name: string;
   status: "Closed" | "Open";
-}
+};
 
 type ClassGroupData = {
   lec: ClassData;
   other: ClassData[];
-}
+};
 
-function parseShoppingCartRows(rows: HTMLCollectionOf<HTMLTableRowElement>): ClassGroupData[] {
+function parseShoppingCartRows(
+  rows: HTMLCollectionOf<HTMLTableRowElement>
+): ClassGroupData[] {
   const ret: ClassGroupData[] = [];
 
   const buf: ClassData[] = [];
@@ -125,10 +143,13 @@ function parseShoppingCartRows(rows: HTMLCollectionOf<HTMLTableRowElement>): Cla
       throw new Error("Could not parse class status");
     }
 
-    if (row.cells[0].getElementsByTagName("input").length > 0 && buf.length > 0) {
+    if (
+      row.cells[0].getElementsByTagName("input").length > 0 &&
+      buf.length > 0
+    ) {
       ret.push({
         lec: buf[0],
-        other: buf.slice(1)
+        other: buf.slice(1),
       });
 
       buf.length = 0;
@@ -136,15 +157,15 @@ function parseShoppingCartRows(rows: HTMLCollectionOf<HTMLTableRowElement>): Cla
 
     buf.push({
       name,
-      status
+      status,
     });
   }
 
   if (buf.length !== 0) {
     ret.push({
       lec: buf[0],
-      other: buf.slice(1)
-    })
+      other: buf.slice(1),
+    });
   }
 
   return ret;
@@ -167,7 +188,9 @@ function checkShoppingCart(doc: Document): ClassGroupData[] {
 
 let shouldKeepRunning = false;
 let refreshCount = 0;
-async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupData[]> {
+async function loopUntilClassAvailable(
+  delay_secs: number
+): Promise<ClassGroupData[]> {
   const main = getMain();
   let doc = await getIFrameDocument(main);
 
@@ -179,7 +202,9 @@ async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupDa
     }
 
     const classGroupData = checkShoppingCart(doc);
-    const availableClasses = classGroupData.filter(classGroup => classGroup.lec.status === "Open");
+    const availableClasses = classGroupData.filter(
+      (classGroup) => classGroup.lec.status === "Open"
+    );
     if (availableClasses.length > 0) {
       return availableClasses;
     }
@@ -197,11 +222,13 @@ async function loopUntilClassAvailable(delay_secs: number): Promise<ClassGroupDa
   }
 }
 
-function sendAvailableClassesNotification(availableClasses: ClassGroupData[]): void {
+function sendAvailableClassesNotification(
+  availableClasses: ClassGroupData[]
+): void {
   chrome.runtime.sendMessage({
     from: "content_script",
     type: "available_classes",
-    availableClasses
+    availableClasses,
   });
 }
 
@@ -210,7 +237,7 @@ function sendErrorNotification(error: any): void {
     from: "content_script",
     type: "error",
     errorName: error?.name,
-    errorMessage: error?.message
+    errorMessage: error?.message,
   });
 }
 

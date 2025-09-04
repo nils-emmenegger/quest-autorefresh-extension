@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener(async (msg) => {
         type: "basic",
         iconUrl: chrome.runtime.getURL("icon.png"),
         title: "Classes Available",
-        message: `${availableClasses.map(c => c.lec.name).join(", ")}`,
+        message: `${availableClasses.map((c) => c.lec.name).join(", ")}`,
       });
     } else if (msg.type === "error") {
       await chrome.notifications.create({
